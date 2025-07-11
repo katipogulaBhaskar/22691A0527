@@ -2,15 +2,11 @@ import { Url } from '../models/url.models.js';
 import { nanoid } from 'nanoid';
 import geoip from 'geoip-lite';
 
-// Build full short URL base
 const HOST = process.env.HOST || 'http://localhost';
 const PORT = process.env.PORT || 5000;
 const BASE_URL = `${HOST}:${PORT}`;
 
-/**
- * @desc Create a new short URL
- * @route POST /api/shorturls
- */
+
 export const createShortUrl = async (req, res) => {
   try {
     const { url, validity = 30, shortcode } = req.body;
@@ -21,13 +17,12 @@ export const createShortUrl = async (req, res) => {
 
     let finalShortcode = shortcode || nanoid(6);
 
-    // Check if shortcode already exists
     const existing = await Url.findOne({ shortCode: finalShortcode });
     if (existing) {
       return res.status(409).json({ error: 'Shortcode already exists.' });
     }
 
-    // Calculate expiry
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + validity * 60000);
 
@@ -51,10 +46,7 @@ export const createShortUrl = async (req, res) => {
   }
 };
 
-/**
- * @desc Redirect to original URL using shortcode
- * @route GET /:shortcode
- */
+
 export const redirectToOriginalUrl = async (req, res) => {
   try {
     const { shortcode } = req.params;
@@ -68,7 +60,7 @@ export const redirectToOriginalUrl = async (req, res) => {
       return res.status(410).json({ error: 'Short URL has expired.' });
     }
 
-    // Track click
+  
     const referrer = req.get('Referer') || 'Direct';
     const ip = req.ip;
     const geo = geoip.lookup(ip)?.country || 'Unknown';
@@ -87,10 +79,7 @@ export const redirectToOriginalUrl = async (req, res) => {
   }
 };
 
-/**
- * @desc Get statistics for a short URL
- * @route GET /api/shorturls/:shortcode
- */
+
 export const getUrlStats = async (req, res) => {
   try {
     const { shortcode } = req.params;
